@@ -17,9 +17,6 @@
 
         #runaway {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
             padding: 15px 30px;
             font-size: 20px;
         }
@@ -28,42 +25,70 @@
 <body>
 
 <h1>Hallo</h1>
-
 <button id="runaway">Trykk meg</button>
 
 <script>
-    const btn = document.getElementById("runaway");
+const btn = document.getElementById("runaway");
 
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
+let x = window.innerWidth / 2;
+let y = window.innerHeight / 2;
+let vx = 0;
+let vy = 0;
 
-    document.addEventListener("mousemove", (e) => {
-        const rect = btn.getBoundingClientRect();
+function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+}
 
-        const btnX = rect.left + rect.width / 2;
-        const btnY = rect.top + rect.height / 2;
+document.addEventListener("mousemove", (e) => {
+    const rect = btn.getBoundingClientRect();
 
-        const dx = btnX - e.clientX;
-        const dy = btnY - e.clientY;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
 
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    const dx = cx - e.clientX;
+    const dy = cy - e.clientY;
 
-        if (distance < 200) {
-            const speed = (200 - distance) / 8;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-            x += (dx / distance) * speed;
-            y += (dy / distance) * speed;
+    if (dist < 220 && dist > 0) {
+        const force = (220 - dist) / 20;
 
-            const margin = 10;
+        vx += (dx / dist) * force;
+        vy += (dy / dist) * force;
+    }
+});
 
-            x = Math.max(margin, Math.min(window.innerWidth - rect.width - margin, x));
-            y = Math.max(margin, Math.min(window.innerHeight - rect.height - margin, y));
+// smooth movement + anti-corner fix
+function animate() {
+    const rect = btn.getBoundingClientRect();
 
-            btn.style.left = x + "px";
-            btn.style.top = y + "px";
-            btn.style.transform = "none";
-        }
-    });
+    vx *= 0.85;
+    vy *= 0.85;
+
+    x += vx;
+    y += vy;
+
+    const margin = 20;
+
+    // hard anti-corner bounce
+    if (x <= margin || x >= window.innerWidth - rect.width - margin) {
+        vx *= -1;
+        x = clamp(x, margin, window.innerWidth - rect.width - margin);
+    }
+
+    if (y <= margin || y >= window.innerHeight - rect.height - margin) {
+        vy *= -1;
+        y = clamp(y, margin, window.innerHeight - rect.height - margin);
+    }
+
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+    btn.style.transform = "none";
+
+    requestAnimationFrame(animate);
+}
+
+animate();
 </script>
 
 </body>
