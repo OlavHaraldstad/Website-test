@@ -1,3 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Olav's nettside</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        #runaway {
+            position: absolute;
+            padding: 15px 30px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Hallo</h1>
+<button id="runaway">Trykk meg</button>
+
 <script>
 const btn = document.getElementById("runaway");
 
@@ -7,62 +36,60 @@ let vx = 0;
 let vy = 0;
 
 function clamp(n, min, max) {
-  return Math.max(min, Math.min(max, n));
+    return Math.max(min, Math.min(max, n));
 }
 
-function runAway(clientX, clientY) {
-  const rect = btn.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
+document.addEventListener("mousemove", (e) => {
+    const rect = btn.getBoundingClientRect();
 
-  const dx = cx - clientX;
-  const dy = cy - clientY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
 
-  if (dist < 220 && dist > 0) {
-    const force = (220 - dist) / 20;
-    vx += (dx / dist) * force;
-    vy += (dy / dist) * force;
-  }
-}
+    const dx = cx - e.clientX;
+    const dy = cy - e.clientY;
 
-document.addEventListener("pointermove", (e) => {
-  runAway(e.clientX, e.clientY);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < 220 && dist > 0) {
+        const force = (220 - dist) / 20;
+
+        vx += (dx / dist) * force;
+        vy += (dy / dist) * force;
+    }
 });
 
-document.addEventListener("pointerdown", (e) => {
-  if (e.pointerType === "touch") {
-    runAway(e.clientX, e.clientY);
-  }
-});
-
+// smooth movement + anti-corner fix
 function animate() {
-  const rect = btn.getBoundingClientRect();
+    const rect = btn.getBoundingClientRect();
 
-  vx *= 0.85;
-  vy *= 0.85;
+    vx *= 0.85;
+    vy *= 0.85;
 
-  x += vx;
-  y += vy;
+    x += vx;
+    y += vy;
 
-  const margin = 20;
+    const margin = 20;
 
-  if (x <= margin || x >= window.innerWidth - rect.width - margin) {
-    vx *= -1;
-    x = clamp(x, margin, window.innerWidth - rect.width - margin);
-  }
+    // hard anti-corner bounce
+    if (x <= margin || x >= window.innerWidth - rect.width - margin) {
+        vx *= -1;
+        x = clamp(x, margin, window.innerWidth - rect.width - margin);
+    }
 
-  if (y <= margin || y >= window.innerHeight - rect.height - margin) {
-    vy *= -1;
-    y = clamp(y, margin, window.innerHeight - rect.height - margin);
-  }
+    if (y <= margin || y >= window.innerHeight - rect.height - margin) {
+        vy *= -1;
+        y = clamp(y, margin, window.innerHeight - rect.height - margin);
+    }
 
-  btn.style.left = x + "px";
-  btn.style.top = y + "px";
-  btn.style.transform = "none";
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+    btn.style.transform = "none";
 
-  requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 }
 
 animate();
 </script>
+
+</body>
+</html>
